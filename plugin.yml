@@ -3,7 +3,7 @@ main: WorldEditor\WorldEditor
 version: 1.0.0
 api: 1.2.0
 author: Kagehis4
-website: https://www.opcodengine.com
+website: https://github.com/ryuzaki01/pocketmine-WorldEditor
 commands:
  toggleeditwand:
   description: Toggles the edit wand mode, to use edit wand item normally.
