@@ -1,7 +1,4 @@
-pocketmine-WorldEditor
-======================
-
-# WorldEditor <em>for PocketMine-MP (New API)</em>
+# pocketmine-WorldEditor <em>for PocketMine-MP (New API)</em>
 
 WorldEditor Plugin is a port of the WorldEdit, done for [PocketMine-MP](https://github.com/shoghicp/PocketMine-MP)
 
