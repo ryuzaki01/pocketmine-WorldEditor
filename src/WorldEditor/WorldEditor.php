@@ -88,6 +88,7 @@ class WorldEditor extends PluginBase implements Listener{
 				break;
 			case "toggleeditwand":
 				$data->set("wand-usage", ($data->get("wand-usage") == true ? false:true));
+				$data->save();
 				$this->output .= "Wand Item is now ".($data->get("wand-usage") === true ? "enabled":"disabled").".\n";
 				break;
 			case "wand":
@@ -208,7 +209,7 @@ class WorldEditor extends PluginBase implements Listener{
 		
 		$data = $this->getData($player);
 		
-        if($item->getID() == Item::fromString($this->getConfig()->get("wand-item"))->getID()){
+        if($data->get('wand-usage') && $item->getID() == Item::fromString($this->getConfig()->get("wand-item"))->getID()){
 			$this->setPosition2($player, $target);
 			$player->sendMessage($this->output);
 			$this->output = "";
@@ -226,7 +227,7 @@ class WorldEditor extends PluginBase implements Listener{
 		
 		$data = $this->getData($player);
 		
-        if($item->getID() == Item::fromString($this->getConfig()->get("wand-item"))->getID()){
+        if($data->get('wand-usage') && $item->getID() == Item::fromString($this->getConfig()->get("wand-item"))->getID()){
 			$this->setPosition1($player, $target);
 			$player->sendMessage($this->output);
 			$this->output = "";
