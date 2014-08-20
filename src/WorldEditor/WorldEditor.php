@@ -143,14 +143,17 @@ class WorldEditor extends PluginBase implements Listener{
 				$radius = abs(floatval($params[1]));
 				
 				$items = Item::fromString($params[0], true);
-				
-				foreach($items as $item){
-					if($item->getID() > 0xff){
-						$this->output .= "Incorrect block.\n";
-						return;
+				if($items){
+					foreach($items as $item){
+						if($item->getID() > 0xff){
+							$this->output .= "Incorrect block.\n";
+							return;
+						}
 					}
+					$this->W_sphere(new Position($sender->getX() - 0.5, $sender->getY(), $sender->getZ() - 0.5, $sender->getLevel()), $items, $radius, $radius, $radius, $filled);
+				} else {
+					$this->output .= "Incorrect block, use ID.\n";
 				}
-				$this->W_sphere(new Position($sender->getX() - 0.5, $sender->getY(), $sender->getZ() - 0.5, $sender->getLevel()), $items, $radius, $radius, $radius, $filled);
 				break;
 			case "set":
 				$count = $this->countBlocks($data->get("selection"));
@@ -159,13 +162,17 @@ class WorldEditor extends PluginBase implements Listener{
 					break;
 				}
 				$items = Item::fromString($params[0], true);
-				foreach($items as $item){
-					if($item->getID() > 0xff){
-						$this->output .= "Incorrect block.\n";
-						return;
+				if($items){
+					foreach($items as $item){
+						if($item->getID() > 0xff){
+							$this->output .= "Incorrect block.\n";
+							return;
+						}
 					}
+					$this->W_set($data->get("selection"), $items);
+				} else {
+					$this->output .= "Incorrect block, use ID.\n";
 				}
-				$this->W_set($data->get("selection"), $items);
 				break;
 			case "replace":
 				$count = $this->countBlocks($data->get("selection"));
@@ -179,14 +186,18 @@ class WorldEditor extends PluginBase implements Listener{
 					break;
 				}
 				$items2 = Item::fromString($params[1], true);
-				foreach($items2 as $item){
-					if($item->getID() > 0xff){
-						$this->output .= "Incorrect replacement block.\n";
-						return;
+				if($items){
+					foreach($items2 as $item){
+						if($item->getID() > 0xff){
+							$this->output .= "Incorrect replacement block.\n";
+							return;
+						}
 					}
+					
+					$this->W_replace($data->get("selection"), $item1, $items2);
+				} else {
+					$this->output .= "Incorrect block, use ID.\n";
 				}
-				
-				$this->W_replace($data->get("selection"), $item1, $items2);
 				break;
 			default:
 			case "help":
@@ -451,7 +462,6 @@ class WorldEditor extends PluginBase implements Listener{
 		}
 		$level = $this->getServer()->getLevelByName($selection[0][3]);
 		$bcnt = count($blocks) - 1;
-		$bcnt2 = count($blocks2) - 1;
 		if($bcnt < 0){
 			$this->output .= "Incorrect blocks.\n";
 			return false;
@@ -466,8 +476,11 @@ class WorldEditor extends PluginBase implements Listener{
 		for($x = $startX; $x <= $endX; ++$x){
 			for($y = $startY; $y <= $endY; ++$y){
 				for($z = $startZ; $z <= $endZ; ++$z){
+					$a = $level->getBlock(new Vector3($x, $y, $z));
 					$b = $blocks[mt_rand(0, $bcnt)];
-					$count += (int) $level->setBlock(new Vector3($x, $y, $z), $b->getBlock(), false, $send);
+					if($a->getID() != 0){
+						$count += (int) $level->setBlock(new Vector3($x, $y, $z), $b->getBlock(), false, $send);
+					}
 				}
 			}
 		}
