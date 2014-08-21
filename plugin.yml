@@ -1,6 +1,6 @@
 name: WorldEditor
 main: WorldEditor\WorldEditor
-version: 1.0.0
+version: 1.0.3
 api: 1.2.0
 author: Kagehis4
 website: https://github.com/ryuzaki01/pocketmine-WorldEditor

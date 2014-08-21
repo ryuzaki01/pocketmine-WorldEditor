@@ -39,15 +39,15 @@ class WorldEditor extends PluginBase implements Listener{
         $cmd = strtolower($command->getName());
 		$params = $args;
 		
-		if(!($sender instanceof Player)){					
-			$this->output .= "Please run this command in-game.\n";
-			break;
+		if(!($sender instanceof Player)){
+			$sender->sendMessage(TextFormat::RED . "Please run this command in-game.\n");
+			return false;
 		}
 		
 		$data = $this->getData($sender);
 		
 		if(!$sender->isOp()){
-			return;
+			return false;
 		}
 		
 		if($cmd{0} === "/"){
@@ -151,6 +151,29 @@ class WorldEditor extends PluginBase implements Listener{
 						}
 					}
 					$this->W_sphere(new Position($sender->getX() - 0.5, $sender->getY(), $sender->getZ() - 0.5, $sender->getLevel()), $items, $radius, $radius, $radius, $filled);
+				} else {
+					$this->output .= "Incorrect block, use ID.\n";
+				}
+				break;
+			case "cube":
+				if(!isset($filled)){
+					$filled = true;
+				}
+				if(!isset($params[1]) or $params[1] == ""){
+					$this->output .= "Usage: //$cmd <block> <radius>.\n";
+					break;
+				}
+				$radius = abs(floatval($params[1]));
+				
+				$items = Item::fromString($params[0], true);
+				if($items){
+					foreach($items as $item){
+						if($item->getID() > 0xff){
+							$this->output .= "Incorrect block.\n";
+							return;
+						}
+					}
+					$this->W_cube(new Position($sender->getX() - 0.5, $sender->getY(), $sender->getZ() - 0.5, $sender->getLevel()), $items, $radius, $radius, $radius, $filled);
 				} else {
 					$this->output .= "Incorrect block, use ID.\n";
 				}
@@ -563,6 +586,75 @@ class WorldEditor extends PluginBase implements Listener{
 	}
 	
 	private function W_sphere(Position $pos, $blocks, $radiusX, $radiusY, $radiusZ, $filled = true){
+		$count = 0;
+
+        $radiusX += 0.5;
+        $radiusY += 0.5;
+        $radiusZ += 0.5;
+
+        $invRadiusX = 1 / $radiusX;
+        $invRadiusY = 1 / $radiusY;
+        $invRadiusZ = 1 / $radiusZ;
+
+        $ceilRadiusX = (int) ceil($radiusX);
+        $ceilRadiusY = (int) ceil($radiusY);
+        $ceilRadiusZ = (int) ceil($radiusZ);
+
+		$bcnt = count($blocks) - 1;
+		
+        $nextXn = 0;
+		$breakX = false;
+		for($x = 0; $x <= $ceilRadiusX and $breakX === false; ++$x){
+			$xn = $nextXn;
+			$nextXn = ($x + 1) * $invRadiusX;
+			$nextYn = 0;
+			$breakY = false;
+			for($y = 0; $y <= $ceilRadiusY and $breakY === false; ++$y){
+				$yn = $nextYn;
+				$nextYn = ($y + 1) * $invRadiusY;
+				$nextZn = 0;
+				$breakZ = false;
+				for($z = 0; $z <= $ceilRadiusZ; ++$z){
+					$zn = $nextZn;
+					$nextZn = ($z + 1) * $invRadiusZ;
+					$distanceSq = WorldEditor::lengthSq($xn, $yn, $zn);
+					if($distanceSq > 1){
+						if($z === 0){
+							if($y === 0){
+								$breakX = true;
+								$breakY = true;
+								break;
+							}
+							$breakY = true;
+							break;
+						}
+						break;
+					}
+					
+					if($filled === false){						
+						if(WorldEditor::lengthSq($nextXn, $yn, $zn) <= 1 and WorldEditor::lengthSq($xn, $nextYn, $zn) <= 1 and WorldEditor::lengthSq($xn, $yn, $nextZn) <= 1){
+							continue;
+						}
+					}					
+
+					$count += (int) $pos->getLevel()->setBlock($pos->add($x, $y, $z), $blocks[mt_rand(0, $bcnt)]->getBlock(), false);
+					$count += (int) $pos->getLevel()->setBlock($pos->add(-$x, $y, $z), $blocks[mt_rand(0, $bcnt)]->getBlock(), false);
+					$count += (int) $pos->getLevel()->setBlock($pos->add($x, -$y, $z), $blocks[mt_rand(0, $bcnt)]->getBlock(), false);
+					$count += (int) $pos->getLevel()->setBlock($pos->add($x, $y, -$z), $blocks[mt_rand(0, $bcnt)]->getBlock(), false);
+					$count += (int) $pos->getLevel()->setBlock($pos->add(-$x, -$y, $z), $blocks[mt_rand(0, $bcnt)]->getBlock(), false);
+					$count += (int) $pos->getLevel()->setBlock($pos->add($x, -$y, -$z), $blocks[mt_rand(0, $bcnt)]->getBlock(), false);
+					$count += (int) $pos->getLevel()->setBlock($pos->add(-$x, $y, -$z), $blocks[mt_rand(0, $bcnt)]->getBlock(), false);
+					$count += (int) $pos->getLevel()->setBlock($pos->add(-$x, -$y, -$z), $blocks[mt_rand(0, $bcnt)]->getBlock(), false);
+					
+				}
+			}
+		}
+		
+		$this->output .= $count." block(s) have been changed.\n";
+		return true;	
+	}
+	
+	private function W_cube(Position $pos, $blocks, $radiusX, $radiusY, $radiusZ, $filled = true){
 		$count = 0;
 
         $radiusX += 0.5;
